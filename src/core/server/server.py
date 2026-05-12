@@ -1,6 +1,8 @@
 from flask import Flask
 from flask_restx import Api, Resource
 
+from src.api.controllers.identify_controller import identify_ns
+
 app = Flask(__name__)
 
 api = Api(
@@ -26,3 +28,5 @@ class HealthResource(Resource):
             "status": "UP",
             "message": "Venomous IA API running"
         }, 200
+
+api.add_namespace(identify_ns, path="/identify")
