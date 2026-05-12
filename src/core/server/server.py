@@ -5,13 +5,21 @@ from src.api.controllers.identify_controller import identify_ns
 
 app = Flask(__name__)
 
+authorizations = {
+    "basicAuth": {
+        "type": "basic"
+    }
+}
+
 api = Api(
     app,
     version="1.0.0",
     title="VENOMOUS IA API",
     description="Documentação da API.",
     doc="/swagger",
-    prefix="/api"
+    prefix="/api",
+    authorizations=authorizations,
+    security="basicAuth"
 )
 
 health_ns = api.namespace(
