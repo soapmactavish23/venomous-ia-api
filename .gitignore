@@ -1,1 +1,60 @@
-.env*
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# IDEs
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Models / large files
+*.h5
+*.keras
+*.pt
+*.pth
+*.onnx
+models/
+checkpoints/
+
+# Audio / uploads
+uploads/
+*.wav
+*.mp3
+*.m4a
+*.ogg
+
+# Docker / rendered k8s
+k8s-rendered/
