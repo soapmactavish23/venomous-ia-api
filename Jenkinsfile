@@ -16,22 +16,20 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                    python3 -m venv .venv
-                    . .venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                '''
-            }
-        }
-
         stage('Run Tests') {
             steps {
                 sh '''
-                    . .venv/bin/activate
-                    python -m pytest
+                    docker run --rm \
+                      -v "$PWD":/app \
+                      -w /app \
+                      python:3.10-slim \
+                      sh -c "
+                        apt-get update &&
+                        apt-get install -y ffmpeg gcc &&
+                        pip install --upgrade pip &&
+                        pip install -r requirements.txt &&
+                        python -m pytest
+                      "
                 '''
             }
         }
