@@ -7,7 +7,7 @@ from src.api.models.inference.inference_request import InferenceRequest
 
 class DeepSeekService:
     def __init__(self):
-        self.base_url = "http://localhost:11434"
+        self.base_url = "https://ollama.house-software.com.br"
         self.model = "deepseek-r1:1.5b"
 
         self.allowed_animals = {

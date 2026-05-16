@@ -8,7 +8,7 @@ def create_identify_parser():
     parser.add_argument("image", type=FileStorage, location="files", required=True)
     parser.add_argument("audio", type=FileStorage, location="files", required=False)
     parser.add_argument("description", type=str, location="form", required=False)
-    parser.add_argument("animalName", type=str, location="form", required=False)
+    parser.add_argument("animal_name", type=str, location="form", required=False)
 
     return parser
 

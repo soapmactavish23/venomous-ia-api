@@ -5,6 +5,7 @@ from src.api.documentation.identify_documentation import (
     create_identify_parser,
     create_identification_response_model
 )
+from src.api.models.identification.identification_request import IdentificationRequest
 from src.api.models.identification.identification_response import IdentificationResponse
 from src.core.security.basic_auth import basic_auth_required
 from src.domain.service.identify_service import IdentifyService
@@ -28,6 +29,9 @@ class IdentifyController(Resource):
     @common_api_responses(identify_ns)
     @basic_auth_required
     def post(self):
-        request = identify_parser.parse_args()
+        request = IdentificationRequest.from_parser_args(
+            identify_parser.parse_args()
+        )
+
         response: IdentificationResponse = service.identify(request)
         return response.to_dict(), 200

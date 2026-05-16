@@ -1,5 +1,9 @@
+from numpy.f2py.auxfuncs import throw_error
+
 from src.api.models.identification.identification_request import IdentificationRequest
 from src.api.models.identification.identification_response import IdentificationResponse
+from src.core.exception.api_exception_handler import handle_errors
+from src.core.exception.types.generic_exception import GenericException
 from src.domain.service.audio_transcription_service import AudioTranscriptionService
 from src.domain.service.deepseek_service import DeepSeekService
 from src.domain.service.inference_service import InferenceService
@@ -12,31 +16,37 @@ class IdentifyService:
         self.deepseek_service = DeepSeekService()
 
     def identify(self, request: IdentificationRequest) -> IdentificationResponse:
-        image = request.get("image")
-        audio = request.get("audio")
-        description = request.get("description")
-        animal_name = request.get("animalName")
+        request.validate()
+        try:
+            if request.image is None:
+                raise ValueError("A imagem é obrigatória.")
 
-        if image is None:
-            raise ValueError("A imagem é obrigatória.")
+            print("CNNs identifications Started.")
+            inferences = self.inference_service.predict_all(request.image)
+            print("CNNs identifications Finished.")
 
-        inferences = self.inference_service.predict_all(image)
+            audio_transcription = ""
+            print("Audio transcription Started.")
+            if request.audio:
+                audio_transcription = self.audio_transcription_service.transcribe(request.audio)
+            print("Audio transcription Finished.")
 
-        audio_transcription = ""
+            print("IA identification Finished.")
+            deepseek_result = self.deepseek_service.analyze(
+                description=request.description,
+                animal_name=request.animal_name,
+                audio_transcription=audio_transcription,
+                inferences=inferences,
+            )
+            print("IA identification Finished.")
 
-        if audio:
-            audio_transcription = self.audio_transcription_service.transcribe(audio)
-
-        deepseek_result = self.deepseek_service.analyze(
-            description=description,
-            animal_name=animal_name,
-            audio_transcription=audio_transcription,
-            inferences=inferences,
-        )
-
-        return IdentificationResponse(
-            scientific_name=deepseek_result.get("scientificName", "Animal não identificado"),
-            ia_description=deepseek_result.get("iaDescription", "Não foi possível gerar análise."),
-            confidence=deepseek_result.get("confidence", 0.0),
-            inferences=inferences,
-        )
+            return IdentificationResponse(
+                scientific_name=deepseek_result.get("scientificName", "Animal não identificado"),
+                ia_description=deepseek_result.get("iaDescription", "Não foi possível gerar análise."),
+                confidence=deepseek_result.get("confidence", 0.0),
+                inferences=inferences,
+            )
+        except ValueError as e:
+            msg = "Erro ao identificar animal"
+            print(msg + ": " + e.args[0])
+            raise GenericException(msg)
