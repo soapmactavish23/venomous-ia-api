@@ -4,12 +4,15 @@ pipeline {
     environment {
         DOCKER_IMAGE = "hkprogrammer/venomous-ia-api"
         IMAGE_TAG = "prod-latest"
+
         K8S_ENV_FILE = "k8s/env/prod.env"
         K8S_RENDERED_DIR = "k8s-rendered"
+
         PYTHON_CI_IMAGE = "hkprogrammer/python-ci:3.10"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -30,14 +33,10 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm \
-                      -v "$PWD":/app \
-                      -w /app \
-                      ${PYTHON_CI_IMAGE} \
-                      sh -c "
-                        pip install --upgrade pip &&
-                        pip install -r requirements.txt &&
-                        python -m pytest
-                      "
+                    -v "$PWD":/app \
+                    -w /app \
+                    ${PYTHON_CI_IMAGE} \
+                    bash -c "pip install --upgrade pip && pip install -r /app/requirements.txt && python -m pytest"
                 '''
             }
         }
@@ -57,6 +56,7 @@ pipeline {
                     usernameVariable: 'DOCKER_USERNAME',
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
+
                     sh '''
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
                         docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
@@ -109,14 +109,17 @@ pipeline {
     }
 
     post {
-        always {
-            sh 'docker logout || true'
-        }
+
         success {
             echo 'Deploy do venomous-ia-api realizado com sucesso.'
         }
+
         failure {
             echo 'Falha no pipeline do venomous-ia-api.'
+        }
+
+        always {
+            sh 'docker logout || true'
         }
     }
 }
