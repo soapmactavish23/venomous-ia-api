@@ -1,4 +1,8 @@
+from src.domain.service.inference_service import InferenceService
+
 class IdentifyService:
+    def __init__(self):
+        self.inference_service = InferenceService()
 
     def identify(self, request):
         image = request.get("image")
@@ -7,7 +11,11 @@ class IdentifyService:
         animal_name = request.get("animalName")
 
         # Aqui depois entram:
-        # 1. validação do arquivo
+        if image is None:
+            raise ValueError("A imagem é obrigatória.")
+
+        inferences = self.inference_service.predict_all(image)
+
         # 2. processamento da imagem
         # 2.1 Checar as inferencias de todas as IAs (MobileNetV2, EfficientNetB0, RestNet50)
         # 3. processamento do áudio
@@ -24,6 +32,16 @@ class IdentifyService:
         return {
             "scientificName": animal_name or "Animal não identificado",
             "iaDescription": description or "Identificação realizada com sucesso.",
-            "confidence": 0.0,
-            "inferences": []
+            "confidence": max([item.confidence for item in inferences], default=0.0),
+            "inferences": [
+                {
+                    "modelName": item.model_name,
+                    "confidence": item.confidence,
+                    "inferenceTimeMs": item.inference_time_ms,
+                    "startedAt": item.started_at.isoformat(),
+                    "finishedAt": item.finished_at.isoformat(),
+                    "animalId": item.animal_id,
+                }
+                for item in inferences
+            ]
         }
