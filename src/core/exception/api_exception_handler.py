@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from werkzeug.exceptions import BadRequest
+
 from src.core.config.constants import Constants
 from src.core.exception.models.problem import Problem
 from src.core.exception.models.validation_exception import ValidationException
@@ -28,6 +30,17 @@ def handle_errors(error: Exception) -> Problem:
             title=Constants.RECURSO_ERRO_STORAGE,
             detail=str(error),
             user_message=Constants.RECURSO_ERRO_STORAGE,
+            timestamp=datetime.utcnow(),
+            objects=[]
+        )
+
+    if isinstance(error, BadRequest):
+        return Problem(
+            status=400,
+            type='validation_error',
+            title='Campos inválidos',
+            detail='Payload inválido.',
+            user_message='Um ou mais campos estão inválidos.',
             timestamp=datetime.utcnow(),
             objects=[]
         )

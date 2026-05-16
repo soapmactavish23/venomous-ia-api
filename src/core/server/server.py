@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from flask_restx import Api, Resource
+from werkzeug.exceptions import BadRequest
 
 from src.api.controllers.identify_controller import identify_ns
 from src.core.exception.api_exception_handler import handle_errors
@@ -22,6 +23,21 @@ api = Api(
     authorizations=authorizations,
     security="basicAuth"
 )
+
+
+def build_error_response(error):
+    problem = handle_errors(error)
+    return problem.to_dict(), problem.status
+
+
+@api.errorhandler(BadRequest)
+def handle_bad_request(error):
+    return build_error_response(error)
+
+
+@api.errorhandler(Exception)
+def handle_all_errors(error):
+    return build_error_response(error)
 
 
 @app.errorhandler(Exception)
