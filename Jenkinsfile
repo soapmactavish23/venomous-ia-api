@@ -4,12 +4,15 @@ pipeline {
     environment {
         DOCKER_IMAGE = "hkprogrammer/venomous-ia-api"
         IMAGE_TAG = "prod-latest"
-        APP_ENV = "prod"
+
         K8S_ENV_FILE = "k8s/env/prod.env"
         K8S_RENDERED_DIR = "k8s-rendered"
+
+        PYTHON_CI_IMAGE = "hkprogrammer/python-ci:3.10"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -22,10 +25,8 @@ pipeline {
                     docker run --rm \
                       -v "$PWD":/app \
                       -w /app \
-                      python:3.10-slim \
+                      ${PYTHON_CI_IMAGE} \
                       sh -c "
-                        apt-get update &&
-                        apt-get install -y ffmpeg gcc &&
                         pip install --upgrade pip &&
                         pip install -r requirements.txt &&
                         python -m pytest
@@ -49,8 +50,10 @@ pipeline {
                     usernameVariable: 'DOCKER_USERNAME',
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
+
                     sh '''
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
                         docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
                     '''
                 }
@@ -92,13 +95,16 @@ pipeline {
                     kubectl apply -f ${K8S_RENDERED_DIR}/service.yaml
                     kubectl apply -f ${K8S_RENDERED_DIR}/ingress.yaml
 
-                    kubectl rollout status deployment/${K8S_DEPLOYMENT} -n ${K8S_NAMESPACE} --timeout=300s
+                    kubectl rollout status deployment/${K8S_DEPLOYMENT} \
+                      -n ${K8S_NAMESPACE} \
+                      --timeout=300s
                 '''
             }
         }
     }
 
     post {
+
         success {
             echo 'Deploy do venomous-ia-api realizado com sucesso.'
         }
