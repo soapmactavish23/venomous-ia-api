@@ -1,5 +1,11 @@
 pipeline {
-    agent any
+
+    agent {
+        docker {
+            image 'hkprogrammer/python-ci:3.10'
+            args '-u root'
+        }
+    }
 
     environment {
         DOCKER_IMAGE = "hkprogrammer/venomous-ia-api"
@@ -7,8 +13,6 @@ pipeline {
 
         K8S_ENV_FILE = "k8s/env/prod.env"
         K8S_RENDERED_DIR = "k8s-rendered"
-
-        PYTHON_CI_IMAGE = "hkprogrammer/python-ci:3.10"
     }
 
     stages {
@@ -22,32 +26,24 @@ pipeline {
         stage('Debug Workspace') {
             steps {
                 sh '''
-                    echo "WORKSPACE=${WORKSPACE}"
-
                     pwd
 
                     ls -la
 
-                    find . -name "requirements.txt"
+                    find . -name requirements.txt
                 '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh """
-                    docker run --rm \
-                      -v ${WORKSPACE}:/app \
-                      -w /app \
-                      ${PYTHON_CI_IMAGE} \
-                      bash -c '
-                        pwd &&
-                        ls -la &&
-                        pip install --upgrade pip &&
-                        pip install -r requirements.txt &&
-                        python -m pytest
-                      '
-                """
+                sh '''
+                    pip install --upgrade pip
+
+                    pip install -r requirements.txt
+
+                    python -m pytest
+                '''
             }
         }
 
@@ -61,6 +57,7 @@ pipeline {
 
         stage('Docker Push') {
             steps {
+
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub',
                     usernameVariable: 'DOCKER_USERNAME',
@@ -78,6 +75,7 @@ pipeline {
 
         stage('Render Kubernetes Manifests') {
             steps {
+
                 sh '''
                     rm -rf ${K8S_RENDERED_DIR}
 
@@ -89,9 +87,13 @@ pipeline {
                     set +a
 
                     envsubst < k8s/configmap.yaml > ${K8S_RENDERED_DIR}/configmap.yaml
+
                     envsubst < k8s/secret.yaml > ${K8S_RENDERED_DIR}/secret.yaml
+
                     envsubst < k8s/deployment.yaml > ${K8S_RENDERED_DIR}/deployment.yaml
+
                     envsubst < k8s/service.yaml > ${K8S_RENDERED_DIR}/service.yaml
+
                     envsubst < k8s/ingress.yaml > ${K8S_RENDERED_DIR}/ingress.yaml
                 '''
             }
@@ -99,6 +101,7 @@ pipeline {
 
         stage('Deploy Kubernetes') {
             steps {
+
                 sh '''
                     set -a
                     . ${K8S_ENV_FILE}
@@ -107,9 +110,13 @@ pipeline {
                     kubectl get namespace ${K8S_NAMESPACE} || kubectl create namespace ${K8S_NAMESPACE}
 
                     kubectl apply -f ${K8S_RENDERED_DIR}/configmap.yaml
+
                     kubectl apply -f ${K8S_RENDERED_DIR}/secret.yaml
+
                     kubectl apply -f ${K8S_RENDERED_DIR}/deployment.yaml
+
                     kubectl apply -f ${K8S_RENDERED_DIR}/service.yaml
+
                     kubectl apply -f ${K8S_RENDERED_DIR}/ingress.yaml
 
                     kubectl rollout status deployment/${K8S_DEPLOYMENT} \
