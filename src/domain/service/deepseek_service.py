@@ -6,10 +6,11 @@ from typing import List, Optional
 from dotenv import load_dotenv
 
 from src.api.models.inference.inference_request import InferenceRequest
+from src.domain.abstractions.deepseek_service_interface import DeepSeekServiceInterface
 
 load_dotenv()
 
-class DeepSeekService:
+class DeepSeekService(DeepSeekServiceInterface):
     def __init__(self):
         self.base_url = os.getenv("BASE_URL")
         self.model = os.getenv("MODEL")

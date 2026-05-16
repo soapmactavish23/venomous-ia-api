@@ -1,38 +1,40 @@
-from numpy.f2py.auxfuncs import throw_error
-
 from src.api.models.identification.identification_request import IdentificationRequest
 from src.api.models.identification.identification_response import IdentificationResponse
-from src.core.exception.api_exception_handler import handle_errors
 from src.core.exception.types.generic_exception import GenericException
-from src.domain.service.audio_transcription_service import AudioTranscriptionService
-from src.domain.service.deepseek_service import DeepSeekService
-from src.domain.service.inference_service import InferenceService
+from src.domain.abstractions.audio_transcription_service import AudioTranscriptionServiceInterface
+from src.domain.abstractions.deepseek_service_interface import DeepSeekServiceInterface
+from src.domain.abstractions.identify_service_interface import IdentifyServiceInterface
+from src.domain.abstractions.inference_service_interface import InferenceServiceInterface
 
 
-class IdentifyService:
-    def __init__(self):
-        self.inference_service = InferenceService()
-        self.audio_transcription_service = AudioTranscriptionService()
-        self.deepseek_service = DeepSeekService()
+class IdentifyService(IdentifyServiceInterface):
+    def __init__(
+        self,
+        inference_service: InferenceServiceInterface,
+        audio_transcription_service: AudioTranscriptionServiceInterface,
+        deepseek_service: DeepSeekServiceInterface,
+    ):
+        self.__inference_service = inference_service
+        self.__audio_transcription_service = audio_transcription_service
+        self.__deepseek_service = deepseek_service
 
     def identify(self, request: IdentificationRequest) -> IdentificationResponse:
         request.validate()
-        try:
-            if request.image is None:
-                raise ValueError("A imagem é obrigatória.")
 
+        try:
             print("CNNs identifications Started.")
-            inferences = self.inference_service.predict_all(request.image)
+            inferences = self.__inference_service.predict_all(request.image)
             print("CNNs identifications Finished.")
 
-            audio_transcription = ""
-            print("Audio transcription Started.")
+            audio_transcription = None
+
             if request.audio:
-                audio_transcription = self.audio_transcription_service.transcribe(request.audio)
-            print("Audio transcription Finished.")
+                print("Audio transcription Started.")
+                audio_transcription = self.__audio_transcription_service.transcribe(request.audio)
+                print("Audio transcription Finished.")
 
             print("IA identification Started.")
-            deepseek_result = self.deepseek_service.analyze(
+            deepseek_result = self.__deepseek_service.analyze(
                 description=request.description,
                 animal_name=request.animal_name,
                 audio_transcription=audio_transcription,
@@ -46,7 +48,11 @@ class IdentifyService:
                 confidence=deepseek_result.get("confidence", 0.0),
                 inferences=inferences,
             )
-        except ValueError as e:
-            msg = "Erro ao identificar animal"
-            print(msg + ": " + e.args[0])
+
+        except GenericException:
+            raise
+
+        except Exception as e:
+            msg = f"Erro ao identificar animal: {str(e)}"
+            print(msg)
             raise GenericException(msg)

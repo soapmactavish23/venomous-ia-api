@@ -8,7 +8,7 @@ from src.api.documentation.identify_documentation import (
 from src.api.models.identification.identification_request import IdentificationRequest
 from src.api.models.identification.identification_response import IdentificationResponse
 from src.core.security.basic_auth import basic_auth_required
-from src.domain.service.identify_service import IdentifyService
+from src.core.factory.service_factory import create_identify_service
 
 identify_ns = Namespace(
     "identify",
@@ -18,7 +18,7 @@ identify_ns = Namespace(
 identify_parser = create_identify_parser()
 identification_response_model = create_identification_response_model(identify_ns)
 
-service = IdentifyService()
+service = create_identify_service()
 
 
 @identify_ns.route("")

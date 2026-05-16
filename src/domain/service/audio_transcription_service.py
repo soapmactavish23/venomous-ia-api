@@ -6,9 +6,11 @@ import speech_recognition as sr
 from pydub import AudioSegment
 from werkzeug.datastructures import FileStorage
 
-from src.core.exception.types.generic_exception import GenericException
+from src.core.exception.types.storage_exception import StorageException
+from src.domain.abstractions.audio_transcription_service import AudioTranscriptionServiceInterface
 
-class AudioTranscriptionService:
+
+class AudioTranscriptionService(AudioTranscriptionServiceInterface):
 
     def transcribe(self, audio_file: Optional[FileStorage]) -> Optional[str]:
         if audio_file is None:
@@ -31,10 +33,10 @@ class AudioTranscriptionService:
             return "Não foi possível compreender o áudio."
 
         except sr.RequestError:
-            raise GenericException("Não foi possível acessar o serviço de transcrição.")
+            raise StorageException("Não foi possível acessar o serviço de transcrição.")
 
         except Exception as error:
-            raise GenericException(f"Erro ao processar o áudio: {str(error)}")
+            raise StorageException(f"Erro ao processar o áudio: {str(error)}")
 
     def __convert_to_wav(self, audio_file: FileStorage) -> Path:
         try:
@@ -54,4 +56,4 @@ class AudioTranscriptionService:
             return output_path
 
         except Exception as error:
-            raise GenericException(f"Erro ao converter áudio para WAV: {str(error)}")
+            raise StorageException(f"Erro ao converter áudio para WAV: {str(error)}")

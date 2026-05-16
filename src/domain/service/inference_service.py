@@ -9,6 +9,7 @@ from PIL import Image
 import tensorflow as tf
 
 from src.api.models.inference.inference_request import InferenceRequest
+from src.domain.abstractions.inference_service_interface import InferenceServiceInterface
 
 
 class PreprocessType(Enum):
@@ -17,7 +18,7 @@ class PreprocessType(Enum):
     RESNET_50 = "resnet_50"
 
 
-class InferenceService:
+class InferenceService(InferenceServiceInterface):
     def __init__(self):
         self.base_path = Path(__file__).resolve().parents[3]
         self.models_path = self.base_path / "models"
