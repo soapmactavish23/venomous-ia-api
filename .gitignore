@@ -40,15 +40,6 @@ tmp/
 temp/
 *.tmp
 
-# Models / large files
-*.h5
-*.keras
-*.pt
-*.pth
-*.onnx
-models/
-checkpoints/
-
 # Audio / uploads
 uploads/
 *.wav
