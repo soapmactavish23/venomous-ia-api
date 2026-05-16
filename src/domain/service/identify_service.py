@@ -31,7 +31,7 @@ class IdentifyService:
                 audio_transcription = self.audio_transcription_service.transcribe(request.audio)
             print("Audio transcription Finished.")
 
-            print("IA identification Finished.")
+            print("IA identification Started.")
             deepseek_result = self.deepseek_service.analyze(
                 description=request.description,
                 animal_name=request.animal_name,
