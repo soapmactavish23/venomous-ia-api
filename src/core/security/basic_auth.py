@@ -10,8 +10,8 @@ from src.core.exception.types.auth_credential_exception import AuthCredentialExc
 
 load_dotenv()
 
-USERNAME = os.getenv("USERNAME")
-PASSWORD = os.getenv("PASSWORD")
+USERNAME = os.getenv("USERNAME_PYTHON")
+PASSWORD = os.getenv("PASSWORD_PYTHON")
 
 def basic_auth_required(func):
     @wraps(func)
