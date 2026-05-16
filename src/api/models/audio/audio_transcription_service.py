@@ -6,9 +6,7 @@ import speech_recognition as sr
 from pydub import AudioSegment
 from werkzeug.datastructures import FileStorage
 
-
 class AudioTranscriptionService:
-
     def transcribe(self, audio_file: Optional[FileStorage]) -> Optional[str]:
         if audio_file is None:
             return None

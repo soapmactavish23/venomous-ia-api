@@ -9,3 +9,4 @@ class InferenceRequest:
     started_at: datetime
     finished_at: datetime
     animal_id: int
+    animal_name: str

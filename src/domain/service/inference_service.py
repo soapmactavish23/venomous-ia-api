@@ -39,10 +39,10 @@ class InferenceService:
         }
 
         self.class_to_animal_id = {
-            0: 1,  # cascavel
-            1: 2,  # coral
-            2: 3,  # jararaca
-            3: 4,  # surucucu
+            0: 2,  # cascavel
+            1: 4,  # coral
+            2: 1,  # jararaca
+            3: 3,  # surucucu
         }
 
     def predict_all(self, image_file) -> List[InferenceRequest]:
@@ -107,7 +107,8 @@ class InferenceService:
             inference_time_ms=inference_time_ms,
             started_at=started_at,
             finished_at=finished_at,
-            animal_id=self.class_to_animal_id.get(predicted_index, 0)
+            animal_id=self.class_to_animal_id.get(predicted_index, 0),
+            animal_name=self.labels[predicted_index]
         )
 
     def __load_image(self, image_file) -> Image.Image:
