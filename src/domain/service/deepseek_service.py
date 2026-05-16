@@ -1,14 +1,18 @@
+import os
 import json
 import requests
 from typing import List, Optional
 
+from dotenv import load_dotenv
+
 from src.api.models.inference.inference_request import InferenceRequest
 
+load_dotenv()
 
 class DeepSeekService:
     def __init__(self):
-        self.base_url = "https://ollama.house-software.com.br"
-        self.model = "deepseek-r1:1.5b"
+        self.base_url = os.getenv("BASE_URL")
+        self.model = os.getenv("MODEL")
 
         self.allowed_animals = {
             "jararaca": {

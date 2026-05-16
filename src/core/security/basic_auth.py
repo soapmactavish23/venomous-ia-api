@@ -1,13 +1,17 @@
+import os
 from functools import wraps
 from hmac import compare_digest
 
 from flask import request
 
+from dotenv import load_dotenv
+
 from src.core.exception.types.auth_credential_exception import AuthCredentialException
 
-USERNAME = "admin"
-PASSWORD = "123456"
+load_dotenv()
 
+USERNAME = os.getenv("USERNAME")
+PASSWORD = os.getenv("PASSWORD")
 
 def basic_auth_required(func):
     @wraps(func)
