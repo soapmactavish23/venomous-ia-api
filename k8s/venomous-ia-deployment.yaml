@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${K8S_DEPLOYMENT}
+  namespace: ${K8S_NAMESPACE}
+spec:
+  replicas: ${REPLICAS}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: ${MAX_SURGE}
+      maxUnavailable: ${MAX_UNAVAILABLE}
+  selector:
+    matchLabels:
+      app: ${K8S_DEPLOYMENT}
+  template:
+    metadata:
+      labels:
+        app: ${K8S_DEPLOYMENT}
+    spec:
+      containers:
+        - name: ${K8S_CONTAINER}
+          image: hkprogrammer/venomous-ia-api:${IMAGE_TAG}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: venomous-ia-config
+            - secretRef:
+                name: venomous-ia-secret
+          resources:
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
+          readinessProbe:
+            httpGet:
+              path: /api/Health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /api/Health
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 6
