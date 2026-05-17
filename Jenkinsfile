@@ -1,11 +1,5 @@
 pipeline {
-
-    agent {
-        docker {
-            image 'hkprogrammer/python-ci:3.10'
-            args '-u root'
-        }
-    }
+    agent any
 
     environment {
         DOCKER_IMAGE = "hkprogrammer/venomous-ia-api"
@@ -16,34 +10,9 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
-            }
-        }
-
-        stage('Debug Workspace') {
-            steps {
-                sh '''
-                    pwd
-
-                    ls -la
-
-                    find . -name requirements.txt
-                '''
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh '''
-                    pip install --upgrade pip
-
-                    pip install -r requirements.txt
-
-                    python -m pytest
-                '''
             }
         }
 
@@ -55,18 +24,23 @@ pipeline {
             }
         }
 
+        stage('Run Tests Inside Image') {
+            steps {
+                sh '''
+                    docker run --rm ${DOCKER_IMAGE}:${IMAGE_TAG} python -m pytest
+                '''
+            }
+        }
+
         stage('Docker Push') {
             steps {
-
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub',
                     usernameVariable: 'DOCKER_USERNAME',
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
-
                     sh '''
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
                         docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
                     '''
                 }
@@ -75,10 +49,8 @@ pipeline {
 
         stage('Render Kubernetes Manifests') {
             steps {
-
                 sh '''
                     rm -rf ${K8S_RENDERED_DIR}
-
                     mkdir -p ${K8S_RENDERED_DIR}
 
                     set -a
@@ -87,13 +59,9 @@ pipeline {
                     set +a
 
                     envsubst < k8s/configmap.yaml > ${K8S_RENDERED_DIR}/configmap.yaml
-
                     envsubst < k8s/secret.yaml > ${K8S_RENDERED_DIR}/secret.yaml
-
                     envsubst < k8s/deployment.yaml > ${K8S_RENDERED_DIR}/deployment.yaml
-
                     envsubst < k8s/service.yaml > ${K8S_RENDERED_DIR}/service.yaml
-
                     envsubst < k8s/ingress.yaml > ${K8S_RENDERED_DIR}/ingress.yaml
                 '''
             }
@@ -101,7 +69,6 @@ pipeline {
 
         stage('Deploy Kubernetes') {
             steps {
-
                 sh '''
                     set -a
                     . ${K8S_ENV_FILE}
@@ -110,13 +77,9 @@ pipeline {
                     kubectl get namespace ${K8S_NAMESPACE} || kubectl create namespace ${K8S_NAMESPACE}
 
                     kubectl apply -f ${K8S_RENDERED_DIR}/configmap.yaml
-
                     kubectl apply -f ${K8S_RENDERED_DIR}/secret.yaml
-
                     kubectl apply -f ${K8S_RENDERED_DIR}/deployment.yaml
-
                     kubectl apply -f ${K8S_RENDERED_DIR}/service.yaml
-
                     kubectl apply -f ${K8S_RENDERED_DIR}/ingress.yaml
 
                     kubectl rollout status deployment/${K8S_DEPLOYMENT} \
@@ -128,6 +91,9 @@ pipeline {
     }
 
     post {
+        always {
+            sh 'docker logout || true'
+        }
 
         success {
             echo 'Deploy do venomous-ia-api realizado com sucesso.'
@@ -135,10 +101,6 @@ pipeline {
 
         failure {
             echo 'Falha no pipeline do venomous-ia-api.'
-        }
-
-        always {
-            sh 'docker logout || true'
         }
     }
 }
