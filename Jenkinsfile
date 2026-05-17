@@ -80,11 +80,11 @@ pipeline {
                           "$input_file" > "$output_file"
                     }
 
-                    render_file k8s/venomous-ia-configmap.yaml ${K8S_RENDERED_DIR}/configmap.yaml
-                    render_file k8s/venomous-ia-secret.yaml ${K8S_RENDERED_DIR}/secret.yaml
-                    render_file k8s/venomous-ia-deployment.yaml ${K8S_RENDERED_DIR}/deployment.yaml
-                    render_file k8s/venomous-ia-service.yaml ${K8S_RENDERED_DIR}/service.yaml
-                    render_file k8s/venomous-ia-ingress.yaml ${K8S_RENDERED_DIR}/ingress.yaml
+                    render_file k8s/configmap.yaml ${K8S_RENDERED_DIR}/configmap.yaml
+                    render_file k8s/secret.yaml ${K8S_RENDERED_DIR}/secret.yaml
+                    render_file k8s/deployment.yaml ${K8S_RENDERED_DIR}/deployment.yaml
+                    render_file k8s/service.yaml ${K8S_RENDERED_DIR}/service.yaml
+                    render_file k8s/ingress.yaml ${K8S_RENDERED_DIR}/ingress.yaml
 
                     echo "Arquivos renderizados:"
                     ls -la ${K8S_RENDERED_DIR}
