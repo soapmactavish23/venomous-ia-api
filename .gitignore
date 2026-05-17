@@ -17,6 +17,7 @@ env/
 .env
 .env.*
 !.env.example
+!k8s/env/*.env
 
 # Pytest / coverage
 .pytest_cache/
