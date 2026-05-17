@@ -58,11 +58,36 @@ pipeline {
                     export IMAGE_TAG=${IMAGE_TAG}
                     set +a
 
-                    envsubst < k8s/configmap.yaml > ${K8S_RENDERED_DIR}/configmap.yaml
-                    envsubst < k8s/secret.yaml > ${K8S_RENDERED_DIR}/secret.yaml
-                    envsubst < k8s/deployment.yaml > ${K8S_RENDERED_DIR}/deployment.yaml
-                    envsubst < k8s/service.yaml > ${K8S_RENDERED_DIR}/service.yaml
-                    envsubst < k8s/ingress.yaml > ${K8S_RENDERED_DIR}/ingress.yaml
+                    render_file() {
+                        input_file=$1
+                        output_file=$2
+
+                        sed \
+                          -e "s|\\${APP_ENV}|${APP_ENV}|g" \
+                          -e "s|\\${K8S_NAMESPACE}|${K8S_NAMESPACE}|g" \
+                          -e "s|\\${K8S_DEPLOYMENT}|${K8S_DEPLOYMENT}|g" \
+                          -e "s|\\${K8S_SERVICE}|${K8S_SERVICE}|g" \
+                          -e "s|\\${K8S_CONTAINER}|${K8S_CONTAINER}|g" \
+                          -e "s|\\${INGRESS_HOST}|${INGRESS_HOST}|g" \
+                          -e "s|\\${REPLICAS}|${REPLICAS}|g" \
+                          -e "s|\\${MAX_SURGE}|${MAX_SURGE}|g" \
+                          -e "s|\\${MAX_UNAVAILABLE}|${MAX_UNAVAILABLE}|g" \
+                          -e "s|\\${CPU_REQUEST}|${CPU_REQUEST}|g" \
+                          -e "s|\\${MEMORY_REQUEST}|${MEMORY_REQUEST}|g" \
+                          -e "s|\\${CPU_LIMIT}|${CPU_LIMIT}|g" \
+                          -e "s|\\${MEMORY_LIMIT}|${MEMORY_LIMIT}|g" \
+                          -e "s|\\${IMAGE_TAG}|${IMAGE_TAG}|g" \
+                          "$input_file" > "$output_file"
+                    }
+
+                    render_file k8s/venomous-ia-configmap.yaml ${K8S_RENDERED_DIR}/configmap.yaml
+                    render_file k8s/venomous-ia-secret.yaml ${K8S_RENDERED_DIR}/secret.yaml
+                    render_file k8s/venomous-ia-deployment.yaml ${K8S_RENDERED_DIR}/deployment.yaml
+                    render_file k8s/venomous-ia-service.yaml ${K8S_RENDERED_DIR}/service.yaml
+                    render_file k8s/venomous-ia-ingress.yaml ${K8S_RENDERED_DIR}/ingress.yaml
+
+                    echo "Arquivos renderizados:"
+                    ls -la ${K8S_RENDERED_DIR}
                 '''
             }
         }
