@@ -32,12 +32,6 @@ class IdentificationRequest:
                 user_message="A imagem é obrigatória."
             ))
 
-        if self.description is None or not self.description.strip():
-            objects.append(ObjectProblem(
-                name="description",
-                user_message="A descrição é obrigatória."
-            ))
-
         if self.animal_name is None or not self.animal_name.strip():
             objects.append(ObjectProblem(
                 name="animal_name",
